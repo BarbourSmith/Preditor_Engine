@@ -7,6 +7,907 @@
   "topLevel": true,
   "allAtoms": [
     {
+      "atomType": "Molecule",
+      "x": 0.5,
+      "y": 0.5,
+      "uniqueID": "id-104",
+      "name": "Predator 212 Engine",
+      "topLevel": false,
+      "allAtoms": [
+        {
+          "atomType": "Output",
+          "x": 0.98,
+          "y": 0.5,
+          "uniqueID": "id-106",
+          "ioValues": [
+            {
+              "name": "number or geometry",
+              "ioValue": "__GEOMETRY_INPUT__"
+            }
+          ]
+        },
+        {
+          "atomType": "Add-BOM-Tag",
+          "x": 0.7,
+          "y": 0.5,
+          "uniqueID": "id-222",
+          "name": "Add BOM Tag",
+          "ioValues": [
+            {
+              "name": "geometry",
+              "ioValue": "__GEOMETRY_INPUT__"
+            },
+            {
+              "name": "Item Name",
+              "ioValue": "Predator 212cc 6.5 HP OHV horizontal shaft gas engine, 3/4 in shaft (Harbor Freight 69730)",
+              "currentEquation": "Predator 212cc 6.5 HP OHV horizontal shaft gas engine, 3/4 in shaft (Harbor Freight 69730)"
+            },
+            {
+              "name": "Number Needed",
+              "ioValue": 1
+            },
+            {
+              "name": "Cost (USD)",
+              "ioValue": 0
+            },
+            {
+              "name": "Source Link",
+              "ioValue": "https://go.harborfreight.com/www69730",
+              "currentEquation": "https://go.harborfreight.com/www69730"
+            }
+          ],
+          "BOMitem": {
+            "BOMitemName": "Predator 212cc 6.5 HP OHV horizontal shaft gas engine, 3/4 in shaft (Harbor Freight 69730)",
+            "numberNeeded": 1,
+            "costUSD": 0,
+            "source": "https://go.harborfreight.com/www69730"
+          }
+        },
+        {
+          "atomType": "Molecule",
+          "x": 0.3,
+          "y": 0.25,
+          "uniqueID": "id-321",
+          "name": "Engine Block",
+          "topLevel": false,
+          "allAtoms": [
+            {
+              "atomType": "Output",
+              "x": 0.98,
+              "y": 0.5,
+              "uniqueID": "id-323",
+              "ioValues": [
+                {
+                  "name": "number or geometry",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                }
+              ]
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.1991,
+              "y": 0.307,
+              "uniqueID": "id-325",
+              "name": "Crankcase",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-326",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-327",
+                  "ioValues": [
+                    {
+                      "name": "holeSpacingX",
+                      "ioValue": 162
+                    },
+                    {
+                      "name": "crankToHole",
+                      "ioValue": 66
+                    },
+                    {
+                      "name": "rowSpacing",
+                      "ioValue": 75.5
+                    },
+                    {
+                      "name": "slotLength",
+                      "ioValue": 5
+                    },
+                    {
+                      "name": "shaftHeight",
+                      "ioValue": 106
+                    },
+                    {
+                      "name": "ptoFaceY",
+                      "ioValue": -80
+                    },
+                    {
+                      "name": "boltCircle",
+                      "ioValue": 92
+                    }
+                  ],
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Predator 212 (item 69730) crankcase casting.\n * Frame: Z = 0 is the underside of the mounting feet, crankshaft axis runs along Y\n * at X = 0, Z = shaftHeight; the PTO (output) end points toward -Y.\n * Exact from the manual (pp. 20-21): hole spacing 162 mm, crank 66 mm from one\n * hole row, rows 75.5 mm apart (slots to 80.5 mm), shaft height 106 mm,\n * 4x 5/16-24 UNF holes on a 92 mm circle on the PTO face.\n * Body shape, ribs, bolts, plugs and the PTO face position along Y are approximate.\n */\nfunction run(\n  holeSpacingX: number = 162,   // mm, between mounting holes along X\n  crankToHole: number = 66,     // mm, crank axis to the -X hole row\n  rowSpacing: number = 75.5,    // mm, between hole rows (min)\n  slotLength: number = 5,       // mm, slots open the rows to 80.5\n  shaftHeight: number = 106,    // mm, feet to crank axis\n  ptoFaceY: number = -80,       // mm, PTO mounting face (approximate)\n  boltCircle: number = 92,      // mm, PTO bolt circle diameter\n): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  const hex = (across, h) => {\n    try { return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h); }\n    catch (e) { return replicad.makeCylinder(across / 2, h); }\n  };\n  const sh = shaftHeight;\n  const holeD = 9;\n  const xL = -crankToHole, xR = holeSpacingX - crankToHole;\n  const yRow0 = -40.5;              // round-hole row (PTO side)\n  const yRow1 = yRow0 + rowSpacing; // slotted row, opens +slotLength\n  const caseY0 = ptoFaceY + 5;\n  const bxL = xL + 12, bxR = xR - 20; // lower case walls, inside the hole rows\n\n  // Mounting base (feet)\n  let body = box(xL - 16, xR + 16, yRow0 - 17, yRow1 + slotLength + 17, 0, 12, 8);\n  // Lower crankcase and round upper case around the crank\n  body = body.fuse(box(bxL, bxR, caseY0, 58, 8, sh, 15));\n  body = body.fuse(replicad.makeCylinder(82, 58 - caseY0, [0, caseY0, sh], [0, 1, 0]));\n  // Stiffening ribs on both side walls\n  for (const y of [-55, -25, 5, 35]) {\n    body = body.fuse(box(bxL - 4, bxL, y, y + 4, 12, 75));\n    body = body.fuse(box(bxR, bxR + 4, y, y + 4, 12, 75));\n  }\n  // Foot gussets beside each hole row\n  for (const y of [yRow0 - 14, yRow1 + slotLength + 10]) {\n    body = body.fuse(box(bxL - 10, bxL, y, y + 4, 12, 30));\n    body = body.fuse(box(bxR, bxR + 10, y, y + 4, 12, 30));\n  }\n  // PTO flange (its face is the mounting face the shaft length is measured from)\n  body = body.fuse(replicad.makeCylinder(56, 5, [0, ptoFaceY, sh], [0, 1, 0]));\n  // Oil seal recess around the shaft\n  body = body.cut(replicad.makeCylinder(21, 2, [0, ptoFaceY - 0.01, sh], [0, 1, 0]));\n  // Crankcase cover parting line (groove round the upper case)\n  const gy = ptoFaceY + 30;\n  body = body.cut(replicad.makeCylinder(84, 1.5, [0, gy, sh], [0, 1, 0])\n    .cut(replicad.makeCylinder(80.8, 1.5, [0, gy, sh], [0, 1, 0])));\n  // Mounting holes and slots, through the feet only\n  for (const x of [xL, xR]) {\n    body = body.cut(replicad.makeCylinder(holeD / 2, 20, [x, yRow0, -4], [0, 0, 1]));\n    const slot = replicad.makeCylinder(holeD / 2, 20, [x, yRow1, -4], [0, 0, 1])\n      .fuse(replicad.makeCylinder(holeD / 2, 20, [x, yRow1 + slotLength, -4], [0, 0, 1]))\n      .fuse(box(x - holeD / 2, x + holeD / 2, yRow1, yRow1 + slotLength, -4, 16));\n    body = body.cut(slot);\n  }\n  // 4x 5/16-24 UNF tapped holes (6.9 mm tap drill, 15 mm deep) on the PTO face\n  const off = boltCircle / 2 / Math.SQRT2;\n  for (const [dx, dz] of [[off, off], [-off, off], [off, -off], [-off, -off]]) {\n    body = body.cut(replicad.makeCylinder(3.45, 16, [dx, ptoFaceY - 1, sh + dz], [0, 1, 0]));\n  }\n  // Six cover bolts on the PTO end, heads flush with the mounting face\n  for (const a of [30, 90, 150, 210, 270, 330]) {\n    const t = (a * Math.PI) / 180;\n    body = body.fuse(hex(10, 5).rotate(90, [0, 0, 0], [1, 0, 0]).translate(70 * Math.cos(t), caseY0, sh + 70 * Math.sin(t)));\n  }\n  // Oil drain plugs on both sides\n  body = body.fuse(replicad.makeCylinder(10, 5, [bxL, -50, 30], [-1, 0, 0]));\n  body = body.fuse(hex(14, 7).rotate(-90, [0, 0, 0], [0, 1, 0]).translate(bxL - 5, -50, 30));\n  body = body.fuse(replicad.makeCylinder(10, 5, [bxR, -50, 30], [1, 0, 0]));\n  body = body.fuse(hex(14, 7).rotate(90, [0, 0, 0], [0, 1, 0]).translate(bxR + 5, -50, 30));\n  // Oil fill neck and dipstick cap, angled up on the -X side\n  const dir = [-0.857, 0, 0.514];\n  const start = [-60, -50, 72];\n  const end = [start[0] + 30 * dir[0], start[1], start[2] + 30 * dir[2]];\n  body = body.fuse(replicad.makeCylinder(9, 30, start, dir));\n  body = body.fuse(replicad.makeCylinder(13, 10, end, dir));\n  body = body.fuse(replicad.makeCylinder(15, 3, end, dir));\n  return new Assembly({ geometry: body, color: \"#8C9096\", tags: [\"crankcase\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Predator 212 (item 69730) crankcase casting.\n * Frame: Z = 0 is the underside of the mounting feet, crankshaft axis runs along Y\n * at X = 0, Z = shaftHeight; the PTO (output) end points toward -Y.\n * Exact from the manual (pp. 20-21): hole spacing 162 mm, crank 66 mm from one\n * hole row, rows 75.5 mm apart (slots to 80.5 mm), shaft height 106 mm,\n * 4x 5/16-24 UNF holes on a 92 mm circle on the PTO face.\n * Body shape, ribs, bolts, plugs and the PTO face position along Y are approximate.\n */\nfunction run(holeSpacingX = 162, // mm, between mounting holes along X\ncrankToHole = 66, // mm, crank axis to the -X hole row\nrowSpacing = 75.5, // mm, between hole rows (min)\nslotLength = 5, // mm, slots open the rows to 80.5\nshaftHeight = 106, // mm, feet to crank axis\nptoFaceY = -80, // mm, PTO mounting face (approximate)\nboltCircle = 92) {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    const hex = (across, h) => {\n        try {\n            return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h);\n        }\n        catch (e) {\n            return replicad.makeCylinder(across / 2, h);\n        }\n    };\n    const sh = shaftHeight;\n    const holeD = 9;\n    const xL = -crankToHole, xR = holeSpacingX - crankToHole;\n    const yRow0 = -40.5; // round-hole row (PTO side)\n    const yRow1 = yRow0 + rowSpacing; // slotted row, opens +slotLength\n    const caseY0 = ptoFaceY + 5;\n    const bxL = xL + 12, bxR = xR - 20; // lower case walls, inside the hole rows\n    // Mounting base (feet)\n    let body = box(xL - 16, xR + 16, yRow0 - 17, yRow1 + slotLength + 17, 0, 12, 8);\n    // Lower crankcase and round upper case around the crank\n    body = body.fuse(box(bxL, bxR, caseY0, 58, 8, sh, 15));\n    body = body.fuse(replicad.makeCylinder(82, 58 - caseY0, [0, caseY0, sh], [0, 1, 0]));\n    // Stiffening ribs on both side walls\n    for (const y of [-55, -25, 5, 35]) {\n        body = body.fuse(box(bxL - 4, bxL, y, y + 4, 12, 75));\n        body = body.fuse(box(bxR, bxR + 4, y, y + 4, 12, 75));\n    }\n    // Foot gussets beside each hole row\n    for (const y of [yRow0 - 14, yRow1 + slotLength + 10]) {\n        body = body.fuse(box(bxL - 10, bxL, y, y + 4, 12, 30));\n        body = body.fuse(box(bxR, bxR + 10, y, y + 4, 12, 30));\n    }\n    // PTO flange (its face is the mounting face the shaft length is measured from)\n    body = body.fuse(replicad.makeCylinder(56, 5, [0, ptoFaceY, sh], [0, 1, 0]));\n    // Oil seal recess around the shaft\n    body = body.cut(replicad.makeCylinder(21, 2, [0, ptoFaceY - 0.01, sh], [0, 1, 0]));\n    // Crankcase cover parting line (groove round the upper case)\n    const gy = ptoFaceY + 30;\n    body = body.cut(replicad.makeCylinder(84, 1.5, [0, gy, sh], [0, 1, 0])\n        .cut(replicad.makeCylinder(80.8, 1.5, [0, gy, sh], [0, 1, 0])));\n    // Mounting holes and slots, through the feet only\n    for (const x of [xL, xR]) {\n        body = body.cut(replicad.makeCylinder(holeD / 2, 20, [x, yRow0, -4], [0, 0, 1]));\n        const slot = replicad.makeCylinder(holeD / 2, 20, [x, yRow1, -4], [0, 0, 1])\n            .fuse(replicad.makeCylinder(holeD / 2, 20, [x, yRow1 + slotLength, -4], [0, 0, 1]))\n            .fuse(box(x - holeD / 2, x + holeD / 2, yRow1, yRow1 + slotLength, -4, 16));\n        body = body.cut(slot);\n    }\n    // 4x 5/16-24 UNF tapped holes (6.9 mm tap drill, 15 mm deep) on the PTO face\n    const off = boltCircle / 2 / Math.SQRT2;\n    for (const [dx, dz] of [[off, off], [-off, off], [off, -off], [-off, -off]]) {\n        body = body.cut(replicad.makeCylinder(3.45, 16, [dx, ptoFaceY - 1, sh + dz], [0, 1, 0]));\n    }\n    // Six cover bolts on the PTO end, heads flush with the mounting face\n    for (const a of [30, 90, 150, 210, 270, 330]) {\n        const t = (a * Math.PI) / 180;\n        body = body.fuse(hex(10, 5).rotate(90, [0, 0, 0], [1, 0, 0]).translate(70 * Math.cos(t), caseY0, sh + 70 * Math.sin(t)));\n    }\n    // Oil drain plugs on both sides\n    body = body.fuse(replicad.makeCylinder(10, 5, [bxL, -50, 30], [-1, 0, 0]));\n    body = body.fuse(hex(14, 7).rotate(-90, [0, 0, 0], [0, 1, 0]).translate(bxL - 5, -50, 30));\n    body = body.fuse(replicad.makeCylinder(10, 5, [bxR, -50, 30], [1, 0, 0]));\n    body = body.fuse(hex(14, 7).rotate(90, [0, 0, 0], [0, 1, 0]).translate(bxR + 5, -50, 30));\n    // Oil fill neck and dipstick cap, angled up on the -X side\n    const dir = [-0.857, 0, 0.514];\n    const start = [-60, -50, 72];\n    const end = [start[0] + 30 * dir[0], start[1], start[2] + 30 * dir[2]];\n    body = body.fuse(replicad.makeCylinder(9, 30, start, dir));\n    body = body.fuse(replicad.makeCylinder(13, 10, end, dir));\n    body = body.fuse(replicad.makeCylinder(15, 3, end, dir));\n    return new Assembly({ geometry: body, color: \"#8C9096\", tags: [\"crankcase\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-327",
+                  "ap2ID": "id-326"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.2,
+              "y": 0.27,
+              "uniqueID": "id-328",
+              "name": "PTO Shaft",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-329",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-330",
+                  "ioValues": [
+                    {
+                      "name": "ptoFaceY",
+                      "ioValue": -80
+                    },
+                    {
+                      "name": "shaftHeight",
+                      "ioValue": 106
+                    }
+                  ],
+                  "interpreterVersion": 1,
+                  "code": "/**\n * PTO crankshaft end. Exact per manual p.21: 19.05 mm (3/4\") diameter,\n * 61.7 mm out of the PTO face, 4.78 mm (3/16\") keyway 45.5 mm long from the end,\n * 16.36 mm across keyway bottom to opposite side, 5/16-24 UNF center hole 17 mm deep.\n */\nfunction run(ptoFaceY: number = -80, shaftHeight: number = 106): Assembly {\n  const r = 19.05 / 2, len = 61.7, endY = ptoFaceY - len;\n  let s = replicad.makeCylinder(r, len + 20, [0, endY, shaftHeight], [0, 1, 0]);\n  const kw = 4.78, keyLen = 45.5, across = 16.36;\n  const keyBottom = shaftHeight - r + across;\n  const key = replicad.drawRectangle(kw, keyLen + 1).sketchOnPlane(\"XY\", keyBottom).extrude(10)\n    .translate(0, endY + (keyLen - 1) / 2, 0);\n  s = s.cut(key);\n  s = s.cut(replicad.makeCylinder(6.9 / 2, 18, [0, endY - 1, shaftHeight], [0, 1, 0]));\n  return new Assembly({ geometry: s, color: \"#C3C7CC\", tags: [\"shaft\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * PTO crankshaft end. Exact per manual p.21: 19.05 mm (3/4\") diameter,\n * 61.7 mm out of the PTO face, 4.78 mm (3/16\") keyway 45.5 mm long from the end,\n * 16.36 mm across keyway bottom to opposite side, 5/16-24 UNF center hole 17 mm deep.\n */\nfunction run(ptoFaceY = -80, shaftHeight = 106) {\n    const r = 19.05 / 2, len = 61.7, endY = ptoFaceY - len;\n    let s = replicad.makeCylinder(r, len + 20, [0, endY, shaftHeight], [0, 1, 0]);\n    const kw = 4.78, keyLen = 45.5, across = 16.36;\n    const keyBottom = shaftHeight - r + across;\n    const key = replicad.drawRectangle(kw, keyLen + 1).sketchOnPlane(\"XY\", keyBottom).extrude(10)\n        .translate(0, endY + (keyLen - 1) / 2, 0);\n    s = s.cut(key);\n    s = s.cut(replicad.makeCylinder(6.9 / 2, 18, [0, endY - 1, shaftHeight], [0, 1, 0]));\n    return new Assembly({ geometry: s, color: \"#C3C7CC\", tags: [\"shaft\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-330",
+                  "ap2ID": "id-329"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.2,
+              "y": 0.39,
+              "uniqueID": "id-331",
+              "name": "Cylinder and Head",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-332",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-333",
+                  "ioValues": [
+                    {
+                      "name": "tiltDeg",
+                      "ioValue": 25
+                    },
+                    {
+                      "name": "shaftHeight",
+                      "ioValue": 106
+                    }
+                  ],
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Finned cylinder barrel, finned head, valve cover with bolts, spark plug boss\n * and intake/exhaust port bosses. Built along local +Z from the crank axis, then\n * leaned toward +X (carburetor and muffler side). Bore 70 mm per manual;\n * external shape approximate. Small features are sunk slightly into the faces\n * they sit on so no faces coincide.\n */\nfunction run(tiltDeg: number = 25, shaftHeight: number = 106): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  const hex = (across, h) => {\n    try { return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h); }\n    catch (e) { return replicad.makeCylinder(across / 2, h); }\n  };\n  let g = replicad.makeCylinder(46, 90, [0, 0, 55], [0, 0, 1]);              // barrel core\n  for (let z = 64; z < 138; z += 9) g = g.fuse(box(-56, 56, -54, 54, z, z + 3, 10)); // barrel fins\n  g = g.fuse(box(-58, 58, -56, 56, 139, 179, 8));                            // cylinder head\n  for (const z of [146, 153, 160, 167]) g = g.fuse(box(-62, 62, -60, 60, z, z + 2.5, 11)); // head fins\n  g = g.fuse(box(-60, 60, -58, 58, 177, 182, 9.5));                          // gasket flange\n  g = g.fuse(box(-46, 50, -48, 48, 181, 200, 10));                           // valve cover\n  for (const [x, y] of [[-34, -36], [-34, 36], [38, -36], [38, 36]]) {\n    g = g.fuse(hex(10, 5.5).translate(x, y, 199.5));                         // valve cover bolts\n  }\n  g = g.fuse(replicad.makeCylinder(5, 14, [6, 0, 199], [0, 0, 1]));          // breather nipple\n  g = g.fuse(box(55, 80, 5, 45, 144, 176, 5));                               // intake port boss\n  g = g.fuse(box(55, 80, -45, -5, 144, 176, 5));                             // exhaust port boss\n  g = g.fuse(replicad.makeCylinder(13, 7, [0, -55, 163.5], [0, -1, 0]));     // spark plug boss\n  g = g.rotate(tiltDeg, [0, 0, 0], [0, 1, 0]).translate(0, 0, shaftHeight);\n  return new Assembly({ geometry: g, color: \"#7E8288\", tags: [\"cylinder\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Finned cylinder barrel, finned head, valve cover with bolts, spark plug boss\n * and intake/exhaust port bosses. Built along local +Z from the crank axis, then\n * leaned toward +X (carburetor and muffler side). Bore 70 mm per manual;\n * external shape approximate. Small features are sunk slightly into the faces\n * they sit on so no faces coincide.\n */\nfunction run(tiltDeg = 25, shaftHeight = 106) {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    const hex = (across, h) => {\n        try {\n            return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h);\n        }\n        catch (e) {\n            return replicad.makeCylinder(across / 2, h);\n        }\n    };\n    let g = replicad.makeCylinder(46, 90, [0, 0, 55], [0, 0, 1]); // barrel core\n    for (let z = 64; z < 138; z += 9)\n        g = g.fuse(box(-56, 56, -54, 54, z, z + 3, 10)); // barrel fins\n    g = g.fuse(box(-58, 58, -56, 56, 139, 179, 8)); // cylinder head\n    for (const z of [146, 153, 160, 167])\n        g = g.fuse(box(-62, 62, -60, 60, z, z + 2.5, 11)); // head fins\n    g = g.fuse(box(-60, 60, -58, 58, 177, 182, 9.5)); // gasket flange\n    g = g.fuse(box(-46, 50, -48, 48, 181, 200, 10)); // valve cover\n    for (const [x, y] of [[-34, -36], [-34, 36], [38, -36], [38, 36]]) {\n        g = g.fuse(hex(10, 5.5).translate(x, y, 199.5)); // valve cover bolts\n    }\n    g = g.fuse(replicad.makeCylinder(5, 14, [6, 0, 199], [0, 0, 1])); // breather nipple\n    g = g.fuse(box(55, 80, 5, 45, 144, 176, 5)); // intake port boss\n    g = g.fuse(box(55, 80, -45, -5, 144, 176, 5)); // exhaust port boss\n    g = g.fuse(replicad.makeCylinder(13, 7, [0, -55, 163.5], [0, -1, 0])); // spark plug boss\n    g = g.rotate(tiltDeg, [0, 0, 0], [0, 1, 0]).translate(0, 0, shaftHeight);\n    return new Assembly({ geometry: g, color: \"#7E8288\", tags: [\"cylinder\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-333",
+                  "ap2ID": "id-332"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.35,
+              "y": 0.45,
+              "uniqueID": "id-334",
+              "name": "Spark Plug and Boot",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-335",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-336",
+                  "ioValues": [
+                    {
+                      "name": "tiltDeg",
+                      "ioValue": 25
+                    },
+                    {
+                      "name": "shaftHeight",
+                      "ioValue": 106
+                    }
+                  ],
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Spark plug (NGK BP-6ES per manual) with boot and lead, in the side of the head.\n * Built in the cylinder's local frame (axis along +Z from the crank) and leaned\n * the same as the Cylinder and Head part. Dimensions approximate.\n */\nfunction run(tiltDeg: number = 25, shaftHeight: number = 106): Assembly {\n  const hex = (across, h) => {\n    try { return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h); }\n    catch (e) { return replicad.makeCylinder(across / 2, h); }\n  };\n  const z = 165;\n  let p = hex(20.6, 9).rotate(90, [0, 0, 0], [1, 0, 0]).translate(0, -62, z); // 13/16 in hex, Y -62..-71\n  p = p.fuse(replicad.makeCylinder(5.5, 10, [0, -71, z], [0, -1, 0]));        // insulator\n  p = p.fuse(replicad.makeCylinder(10, 30, [0, -78, z], [0, -1, 0]));         // boot, Y -78..-108\n  p = p.fuse(replicad.makeCylinder(3.5, 45, [-6, -98, z], [-1, 0, -0.35]));   // HT lead toward the coil\n  p = p.rotate(tiltDeg, [0, 0, 0], [0, 1, 0]).translate(0, 0, shaftHeight);\n  return new Assembly({ geometry: p, color: \"#151515\", tags: [\"spark plug\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Spark plug (NGK BP-6ES per manual) with boot and lead, in the side of the head.\n * Built in the cylinder's local frame (axis along +Z from the crank) and leaned\n * the same as the Cylinder and Head part. Dimensions approximate.\n */\nfunction run(tiltDeg = 25, shaftHeight = 106) {\n    const hex = (across, h) => {\n        try {\n            return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h);\n        }\n        catch (e) {\n            return replicad.makeCylinder(across / 2, h);\n        }\n    };\n    const z = 165;\n    let p = hex(20.6, 9).rotate(90, [0, 0, 0], [1, 0, 0]).translate(0, -62, z); // 13/16 in hex, Y -62..-71\n    p = p.fuse(replicad.makeCylinder(5.5, 10, [0, -71, z], [0, -1, 0])); // insulator\n    p = p.fuse(replicad.makeCylinder(10, 30, [0, -78, z], [0, -1, 0])); // boot, Y -78..-108\n    p = p.fuse(replicad.makeCylinder(3.5, 45, [-6, -98, z], [-1, 0, -0.35])); // HT lead toward the coil\n    p = p.rotate(tiltDeg, [0, 0, 0], [0, 1, 0]).translate(0, 0, shaftHeight);\n    return new Assembly({ geometry: p, color: \"#151515\", tags: [\"spark plug\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-336",
+                  "ap2ID": "id-335"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Assembly",
+              "x": 0.55,
+              "y": 0.25,
+              "uniqueID": "id-337",
+              "ioValues": [
+                {
+                  "name": "makeDisjoint",
+                  "ioValue": false
+                },
+                {
+                  "name": "Shape 1",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape2",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape3",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape4",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape5",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                }
+              ]
+            }
+          ],
+          "allConnectors": [
+            {
+              "ap2Name": "Shape 1",
+              "ap1ID": "id-325",
+              "ap2ID": "id-337"
+            },
+            {
+              "ap2Name": "Shape2",
+              "ap1ID": "id-328",
+              "ap2ID": "id-337"
+            },
+            {
+              "ap2Name": "Shape3",
+              "ap1ID": "id-331",
+              "ap2ID": "id-337"
+            },
+            {
+              "ap2Name": "Shape4",
+              "ap1ID": "id-334",
+              "ap2ID": "id-337"
+            },
+            {
+              "ap2Name": "number or geometry",
+              "ap1ID": "id-337",
+              "ap2ID": "id-323"
+            }
+          ],
+          "fileTypeVersion": 1
+        },
+        {
+          "atomType": "Molecule",
+          "x": 0.2989,
+          "y": 0.5099,
+          "uniqueID": "id-378",
+          "name": "Fuel and Air",
+          "topLevel": false,
+          "allAtoms": [
+            {
+              "atomType": "Output",
+              "x": 0.98,
+              "y": 0.5,
+              "uniqueID": "id-380",
+              "ioValues": [
+                {
+                  "name": "number or geometry",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                }
+              ]
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.2,
+              "y": 0.51,
+              "uniqueID": "id-382",
+              "name": "Fuel Tank",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-383",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-384",
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Fuel tank (0.9 gal) with seam lip and ribbed filler cap. The lip's -X edge\n * and the top of the cap set the engine's overall width and height (368 mm /\n * 14.5 in and 356 mm / 14 in per retailer listings). Shape approximate.\n */\nfunction run(): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  let t = box(-148.5, 20, -40, 160, 255, 330, 28);\n  try { t = t.fillet(12, (e) => e.inPlane(\"XY\", 330)); } catch (err) { console.warn(\"tank top fillet skipped\"); }\n  try { t = t.fillet(6, (e) => e.inPlane(\"XY\", 255)); } catch (err) { console.warn(\"tank bottom fillet skipped\"); }\n  t = t.fuse(box(-150, 21.5, -41.5, 161.5, 288, 292, 29.5));               // seam lip\n  const cx = -65, cy = 60;\n  t = t.fuse(replicad.makeCylinder(22, 8, [cx, cy, 328], [0, 0, 1]));       // filler neck\n  let cap = replicad.makeCylinder(28, 20, [cx, cy, 336], [0, 0, 1]);        // cap, top at Z 356\n  for (let i = 0; i < 16; i++) {\n    cap = cap.cut(box(cx + 25.5, cx + 30, cy - 1.75, cy + 1.75, 338, 357).rotate(i * 22.5, [cx, cy, 0], [0, 0, 1]));\n  }\n  t = t.fuse(cap);\n  return new Assembly({ geometry: t, color: \"#1E1E1E\", tags: [\"fuel tank\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Fuel tank (0.9 gal) with seam lip and ribbed filler cap. The lip's -X edge\n * and the top of the cap set the engine's overall width and height (368 mm /\n * 14.5 in and 356 mm / 14 in per retailer listings). Shape approximate.\n */\nfunction run() {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    let t = box(-148.5, 20, -40, 160, 255, 330, 28);\n    try {\n        t = t.fillet(12, (e) => e.inPlane(\"XY\", 330));\n    }\n    catch (err) {\n        console.warn(\"tank top fillet skipped\");\n    }\n    try {\n        t = t.fillet(6, (e) => e.inPlane(\"XY\", 255));\n    }\n    catch (err) {\n        console.warn(\"tank bottom fillet skipped\");\n    }\n    t = t.fuse(box(-150, 21.5, -41.5, 161.5, 288, 292, 29.5)); // seam lip\n    const cx = -65, cy = 60;\n    t = t.fuse(replicad.makeCylinder(22, 8, [cx, cy, 328], [0, 0, 1])); // filler neck\n    let cap = replicad.makeCylinder(28, 20, [cx, cy, 336], [0, 0, 1]); // cap, top at Z 356\n    for (let i = 0; i < 16; i++) {\n        cap = cap.cut(box(cx + 25.5, cx + 30, cy - 1.75, cy + 1.75, 338, 357).rotate(i * 22.5, [cx, cy, 0], [0, 0, 1]));\n    }\n    t = t.fuse(cap);\n    return new Assembly({ geometry: t, color: \"#1E1E1E\", tags: [\"fuel tank\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-384",
+                  "ap2ID": "id-383"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.35,
+              "y": 0.3,
+              "uniqueID": "id-385",
+              "name": "Fuel Valve and Line",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-386",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-387",
+                  "ioValues": [
+                    {
+                      "name": "hoseRadius",
+                      "ioValue": 3.5
+                    }
+                  ],
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Fuel shutoff valve on the tank's +X side with its lever, and the fuel hose\n * to the carburetor inlet. Route approximate.\n */\nfunction run(hoseRadius: number = 3.5): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  const tube = (a, b, r) => {\n    const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];\n    const L = Math.hypot(d[0], d[1], d[2]);\n    return replicad.makeCylinder(r, L, a, d.map((v) => v / L));\n  };\n  let v = box(20, 36, 100, 120, 258, 274, 3);                  // valve body on the tank wall\n  v = v.fuse(box(35, 60, 107, 113, 262, 266, 2));              // lever\n  v = v.fuse(replicad.makeCylinder(4, 9, [28, 104, 259], [0, 0, -1])); // outlet barb\n  const pts = [[28, 104, 251], [115, 50, 252], [104, 40, 222]];\n  for (let i = 0; i < pts.length - 1; i++) v = v.fuse(tube(pts[i], pts[i + 1], hoseRadius));\n  for (const p of pts) v = v.fuse(replicad.makeSphere(hoseRadius).translate(p[0], p[1], p[2]));\n  return new Assembly({ geometry: v, color: \"#303030\", tags: [\"fuel valve\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Fuel shutoff valve on the tank's +X side with its lever, and the fuel hose\n * to the carburetor inlet. Route approximate.\n */\nfunction run(hoseRadius = 3.5) {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    const tube = (a, b, r) => {\n        const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];\n        const L = Math.hypot(d[0], d[1], d[2]);\n        return replicad.makeCylinder(r, L, a, d.map((v) => v / L));\n    };\n    let v = box(20, 36, 100, 120, 258, 274, 3); // valve body on the tank wall\n    v = v.fuse(box(35, 60, 107, 113, 262, 266, 2)); // lever\n    v = v.fuse(replicad.makeCylinder(4, 9, [28, 104, 259], [0, 0, -1])); // outlet barb\n    const pts = [[28, 104, 251], [115, 50, 252], [104, 40, 222]];\n    for (let i = 0; i < pts.length - 1; i++)\n        v = v.fuse(tube(pts[i], pts[i + 1], hoseRadius));\n    for (const p of pts)\n        v = v.fuse(replicad.makeSphere(hoseRadius).translate(p[0], p[1], p[2]));\n    return new Assembly({ geometry: v, color: \"#303030\", tags: [\"fuel valve\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-387",
+                  "ap2ID": "id-386"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.35,
+              "y": 0.15,
+              "uniqueID": "id-388",
+              "name": "Carburetor",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-389",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-390",
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Carburetor between the head's intake port and the air cleaner: insulator,\n * body, float bowl with drain bolt, fuel inlet nipple and choke lever.\n * Shape and position approximate.\n */\nfunction run(): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  const hex = (across, h) => {\n    try { return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h); }\n    catch (e) { return replicad.makeCylinder(across / 2, h); }\n  };\n  let c = box(108, 118.5, 10, 50, 203, 229, 3);                             // insulator plate\n  c = c.fuse(box(118, 152, 8, 52, 200, 232, 4));                            // body\n  c = c.fuse(replicad.makeCylinder(17, 33, [136, 30, 168], [0, 0, 1]));     // float bowl\n  c = c.fuse(hex(12, 8.5).translate(136, 30, 160));                        // bowl drain bolt\n  c = c.fuse(replicad.makeCylinder(3.5, 14, [120, 40, 222], [-1, 0, 0]));   // fuel inlet\n  c = c.fuse(box(126, 146, -14, 9, 228, 231, 1));                           // choke lever\n  c = c.fuse(box(126, 132, -20, -13, 222, 237, 1));                         // choke tab\n  return new Assembly({ geometry: c, color: \"#A9ACB0\", tags: [\"carburetor\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Carburetor between the head's intake port and the air cleaner: insulator,\n * body, float bowl with drain bolt, fuel inlet nipple and choke lever.\n * Shape and position approximate.\n */\nfunction run() {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    const hex = (across, h) => {\n        try {\n            return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h);\n        }\n        catch (e) {\n            return replicad.makeCylinder(across / 2, h);\n        }\n    };\n    let c = box(108, 118.5, 10, 50, 203, 229, 3); // insulator plate\n    c = c.fuse(box(118, 152, 8, 52, 200, 232, 4)); // body\n    c = c.fuse(replicad.makeCylinder(17, 33, [136, 30, 168], [0, 0, 1])); // float bowl\n    c = c.fuse(hex(12, 8.5).translate(136, 30, 160)); // bowl drain bolt\n    c = c.fuse(replicad.makeCylinder(3.5, 14, [120, 40, 222], [-1, 0, 0])); // fuel inlet\n    c = c.fuse(box(126, 146, -14, 9, 228, 231, 1)); // choke lever\n    c = c.fuse(box(126, 132, -20, -13, 222, 237, 1)); // choke tab\n    return new Assembly({ geometry: c, color: \"#A9ACB0\", tags: [\"carburetor\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-390",
+                  "ap2ID": "id-389"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.2,
+              "y": 0.75,
+              "uniqueID": "id-391",
+              "name": "Air Cleaner",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-392",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-393",
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Air cleaner housing on the +X side over the carburetor, with cover seam,\n * intake slots and wing knob. The knob and the muffler outlet set the engine's\n * +X extent (368 mm / 14.5 in overall per retailer listings). Shape approximate.\n */\nfunction run(): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  let a = box(150, 208, -5, 150, 190, 300, 18);\n  try { a = a.fillet(8, (e) => e.inPlane(\"XY\", 300)); } catch (err) { console.warn(\"air cleaner fillet skipped\"); }\n  // Cover seam: shallow groove all round\n  a = a.cut(box(170.5, 172.5, -8, 153, 187, 303).cut(box(170.5, 172.5, -2, 147, 193, 297)));\n  // Intake slots underneath\n  for (let i = 0; i < 5; i++) {\n    const y = 20 + i * 22;\n    a = a.cut(box(180, 202, y, y + 6, 189, 193));\n  }\n  // Wing knob holding the cover\n  a = a.fuse(replicad.makeCylinder(14, 6.5, [207.5, 72, 245], [1, 0, 0]));\n  a = a.fuse(box(213, 218, 61, 83, 241, 249, 2));\n  return new Assembly({ geometry: a, color: \"#262626\", tags: [\"air cleaner\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Air cleaner housing on the +X side over the carburetor, with cover seam,\n * intake slots and wing knob. The knob and the muffler outlet set the engine's\n * +X extent (368 mm / 14.5 in overall per retailer listings). Shape approximate.\n */\nfunction run() {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    let a = box(150, 208, -5, 150, 190, 300, 18);\n    try {\n        a = a.fillet(8, (e) => e.inPlane(\"XY\", 300));\n    }\n    catch (err) {\n        console.warn(\"air cleaner fillet skipped\");\n    }\n    // Cover seam: shallow groove all round\n    a = a.cut(box(170.5, 172.5, -8, 153, 187, 303).cut(box(170.5, 172.5, -2, 147, 193, 297)));\n    // Intake slots underneath\n    for (let i = 0; i < 5; i++) {\n        const y = 20 + i * 22;\n        a = a.cut(box(180, 202, y, y + 6, 189, 193));\n    }\n    // Wing knob holding the cover\n    a = a.fuse(replicad.makeCylinder(14, 6.5, [207.5, 72, 245], [1, 0, 0]));\n    a = a.fuse(box(213, 218, 61, 83, 241, 249, 2));\n    return new Assembly({ geometry: a, color: \"#262626\", tags: [\"air cleaner\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-393",
+                  "ap2ID": "id-392"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Assembly",
+              "x": 0.55,
+              "y": 0.5,
+              "uniqueID": "id-394",
+              "ioValues": [
+                {
+                  "name": "makeDisjoint",
+                  "ioValue": false
+                },
+                {
+                  "name": "Shape 1",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape2",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape3",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape4",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape5",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                }
+              ]
+            }
+          ],
+          "allConnectors": [
+            {
+              "ap2Name": "Shape 1",
+              "ap1ID": "id-382",
+              "ap2ID": "id-394"
+            },
+            {
+              "ap2Name": "Shape2",
+              "ap1ID": "id-385",
+              "ap2ID": "id-394"
+            },
+            {
+              "ap2Name": "Shape3",
+              "ap1ID": "id-388",
+              "ap2ID": "id-394"
+            },
+            {
+              "ap2Name": "Shape4",
+              "ap1ID": "id-391",
+              "ap2ID": "id-394"
+            },
+            {
+              "ap2Name": "number or geometry",
+              "ap1ID": "id-394",
+              "ap2ID": "id-380"
+            }
+          ],
+          "fileTypeVersion": 1
+        },
+        {
+          "atomType": "Molecule",
+          "x": 0.3,
+          "y": 0.75,
+          "uniqueID": "id-423",
+          "name": "Starter, Controls and Exhaust",
+          "topLevel": false,
+          "allAtoms": [
+            {
+              "atomType": "Output",
+              "x": 0.98,
+              "y": 0.5,
+              "uniqueID": "id-425",
+              "ioValues": [
+                {
+                  "name": "number or geometry",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                }
+              ]
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.2,
+              "y": 0.63,
+              "uniqueID": "id-427",
+              "name": "Recoil Starter Housing",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-428",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-429",
+                  "ioValues": [
+                    {
+                      "name": "shaftHeight",
+                      "ioValue": 106
+                    }
+                  ],
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Blower housing over the flywheel, vented recoil starter cup, housing bolts,\n * rope guide and pull handle. The starter cup's back face sets the engine's\n * length along the crank, 317.5 mm (12.5 in) from the PTO shaft end per\n * retailer listings. Shape approximate.\n */\nfunction run(shaftHeight: number = 106): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  const hex = (across, h) => {\n    try { return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h); }\n    catch (e) { return replicad.makeCylinder(across / 2, h); }\n  };\n  const sh = shaftHeight;\n  let h = replicad.makeCylinder(100, 102, [0, 58, sh], [0, 1, 0]);          // flywheel cover, Y 58-160\n  h = h.fuse(box(-100, 125, 58, 150, sh, 250, 25));                          // shroud over the cylinder\n  h = h.fuse(replicad.makeCylinder(103, 4, [0, 58, sh], [0, 1, 0]));        // housing flange\n  // Recoil starter cup, back face at Y 176, with radial vents and a recessed hub\n  let cup = replicad.makeCylinder(72, 16, [0, 160, sh], [0, 1, 0]);\n  for (let i = 0; i < 12; i++) {\n    cup = cup.cut(box(-2.5, 2.5, 172, 177, sh + 36, sh + 64).rotate(i * 30, [0, 0, sh], [0, 1, 0]));\n  }\n  cup = cup.cut(replicad.makeCylinder(22, 4, [0, 173, sh], [0, 1, 0]));\n  cup = cup.fuse(replicad.makeCylinder(9, 4, [0, 172, sh], [0, 1, 0]));\n  h = h.fuse(cup);\n  // Three cup-mounting bolts on the flywheel cover face\n  for (const a of [90, 210, 330]) {\n    const t = (a * Math.PI) / 180;\n    h = h.fuse(hex(10, 4).rotate(-90, [0, 0, 0], [1, 0, 0]).translate(86 * Math.cos(t), 160, sh + 86 * Math.sin(t)));\n  }\n  // Rope guide and T pull handle\n  h = h.fuse(replicad.makeCylinder(9, 12, [95, 150, 215], [0, 1, 0]));\n  h = h.fuse(replicad.makeCylinder(8, 64, [63, 168, 225], [1, 0, 0]));\n  h = h.fuse(replicad.makeCylinder(5, 12, [95, 160, 215], [0, 1, 0.8]));\n  return new Assembly({ geometry: h, color: \"#2B2B2B\", tags: [\"recoil housing\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Blower housing over the flywheel, vented recoil starter cup, housing bolts,\n * rope guide and pull handle. The starter cup's back face sets the engine's\n * length along the crank, 317.5 mm (12.5 in) from the PTO shaft end per\n * retailer listings. Shape approximate.\n */\nfunction run(shaftHeight = 106) {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    const hex = (across, h) => {\n        try {\n            return replicad.drawPolysides(across / Math.sqrt(3), 6).sketchOnPlane(\"XY\").extrude(h);\n        }\n        catch (e) {\n            return replicad.makeCylinder(across / 2, h);\n        }\n    };\n    const sh = shaftHeight;\n    let h = replicad.makeCylinder(100, 102, [0, 58, sh], [0, 1, 0]); // flywheel cover, Y 58-160\n    h = h.fuse(box(-100, 125, 58, 150, sh, 250, 25)); // shroud over the cylinder\n    h = h.fuse(replicad.makeCylinder(103, 4, [0, 58, sh], [0, 1, 0])); // housing flange\n    // Recoil starter cup, back face at Y 176, with radial vents and a recessed hub\n    let cup = replicad.makeCylinder(72, 16, [0, 160, sh], [0, 1, 0]);\n    for (let i = 0; i < 12; i++) {\n        cup = cup.cut(box(-2.5, 2.5, 172, 177, sh + 36, sh + 64).rotate(i * 30, [0, 0, sh], [0, 1, 0]));\n    }\n    cup = cup.cut(replicad.makeCylinder(22, 4, [0, 173, sh], [0, 1, 0]));\n    cup = cup.fuse(replicad.makeCylinder(9, 4, [0, 172, sh], [0, 1, 0]));\n    h = h.fuse(cup);\n    // Three cup-mounting bolts on the flywheel cover face\n    for (const a of [90, 210, 330]) {\n        const t = (a * Math.PI) / 180;\n        h = h.fuse(hex(10, 4).rotate(-90, [0, 0, 0], [1, 0, 0]).translate(86 * Math.cos(t), 160, sh + 86 * Math.sin(t)));\n    }\n    // Rope guide and T pull handle\n    h = h.fuse(replicad.makeCylinder(9, 12, [95, 150, 215], [0, 1, 0]));\n    h = h.fuse(replicad.makeCylinder(8, 64, [63, 168, 225], [1, 0, 0]));\n    h = h.fuse(replicad.makeCylinder(5, 12, [95, 160, 215], [0, 1, 0.8]));\n    return new Assembly({ geometry: h, color: \"#2B2B2B\", tags: [\"recoil housing\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-429",
+                  "ap2ID": "id-428"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.3214,
+              "y": 0.3408,
+              "uniqueID": "id-430",
+              "name": "Throttle Control",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-431",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-432",
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Throttle lever: a small flat tab on the governor bracket just under the air\n * filter, above the choke and fuel valve (manual p.6 inset, p.10 step 3).\n * Slides between SLOW (turtle) and FAST (rabbit). Size and position approximate.\n */\nfunction run(): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  let t = replicad.makeCylinder(6, 4, [158, 100, 183], [0, 0, 1]); // pivot under the air filter\n  t = t.fuse(box(158, 214, 94, 106, 184, 186.5, 2));                // flat lever arm\n  t = t.fuse(box(210, 214, 94, 106, 174, 186.5, 1));                // bent-down finger tab\n  return new Assembly({ geometry: t, color: \"#2B2B2B\", tags: [\"throttle\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Throttle lever: a small flat tab on the governor bracket just under the air\n * filter, above the choke and fuel valve (manual p.6 inset, p.10 step 3).\n * Slides between SLOW (turtle) and FAST (rabbit). Size and position approximate.\n */\nfunction run() {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    let t = replicad.makeCylinder(6, 4, [158, 100, 183], [0, 0, 1]); // pivot under the air filter\n    t = t.fuse(box(158, 214, 94, 106, 184, 186.5, 2)); // flat lever arm\n    t = t.fuse(box(210, 214, 94, 106, 174, 186.5, 1)); // bent-down finger tab\n    return new Assembly({ geometry: t, color: \"#2B2B2B\", tags: [\"throttle\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-432",
+                  "ap2ID": "id-431"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.35,
+              "y": 0.75,
+              "uniqueID": "id-433",
+              "name": "Engine Switch",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-434",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-435",
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Engine ON/OFF rocker switch on the -X side of the blower housing.\n * Position approximate.\n */\nfunction run(): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  let s = box(-104, -86, 118, 142, 138, 166, 3);    // switch housing\n  s = s.fuse(box(-108, -104, 123, 137, 145, 159, 1)); // rocker\n  return new Assembly({ geometry: s, color: \"#C62828\", tags: [\"engine switch\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Engine ON/OFF rocker switch on the -X side of the blower housing.\n * Position approximate.\n */\nfunction run() {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    let s = box(-104, -86, 118, 142, 138, 166, 3); // switch housing\n    s = s.fuse(box(-108, -104, 123, 137, 145, 159, 1)); // rocker\n    return new Assembly({ geometry: s, color: \"#C62828\", tags: [\"engine switch\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-435",
+                  "ap2ID": "id-434"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Molecule",
+              "x": 0.2,
+              "y": 0.87,
+              "uniqueID": "id-436",
+              "name": "Muffler",
+              "topLevel": false,
+              "allAtoms": [
+                {
+                  "atomType": "Output",
+                  "x": 0.98,
+                  "y": 0.5,
+                  "uniqueID": "id-437",
+                  "ioValues": [
+                    {
+                      "name": "number or geometry",
+                      "ioValue": "__GEOMETRY_INPUT__"
+                    }
+                  ]
+                },
+                {
+                  "atomType": "Code",
+                  "x": 0.4,
+                  "y": 0.5,
+                  "uniqueID": "id-438",
+                  "interpreterVersion": 1,
+                  "code": "/**\n * Muffler with perforated heat shield, exhaust elbow to the head and outlet.\n * Shape and position approximate.\n */\nfunction run(): Assembly {\n  const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n    const w = x1 - x0, d = y1 - y0;\n    const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n    return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n  };\n  let m = box(100, 205, -135, -62, 120, 240, 14);\n  // Heat shield perforations on the outer face\n  for (let z = 135; z <= 215; z += 16) {\n    for (let y = -124; y <= -78; y += 12) {\n      m = m.cut(box(202, 206, y, y + 6, z, z + 9, 2.5));\n    }\n  }\n  m = m.fuse(box(110, 132, -70, -35, 198, 226, 4));                           // exhaust elbow to head\n  m = m.fuse(replicad.makeCylinder(10, 15.5, [202.5, -100, 140], [1, 0, 0])); // side outlet\n  return new Assembly({ geometry: m, color: \"#3A3A3A\", tags: [\"muffler\"] });\n}\n",
+                  "compiledCode": "\"use strict\";\n/**\n * Muffler with perforated heat shield, exhaust elbow to the head and outlet.\n * Shape and position approximate.\n */\nfunction run() {\n    const box = (x0, x1, y0, y1, z0, z1, r = 0) => {\n        const w = x1 - x0, d = y1 - y0;\n        const dr = r > 0 ? replicad.drawRoundedRectangle(w, d, r) : replicad.drawRectangle(w, d);\n        return dr.sketchOnPlane(\"XY\", z0).extrude(z1 - z0).translate((x0 + x1) / 2, (y0 + y1) / 2, 0);\n    };\n    let m = box(100, 205, -135, -62, 120, 240, 14);\n    // Heat shield perforations on the outer face\n    for (let z = 135; z <= 215; z += 16) {\n        for (let y = -124; y <= -78; y += 12) {\n            m = m.cut(box(202, 206, y, y + 6, z, z + 9, 2.5));\n        }\n    }\n    m = m.fuse(box(110, 132, -70, -35, 198, 226, 4)); // exhaust elbow to head\n    m = m.fuse(replicad.makeCylinder(10, 15.5, [202.5, -100, 140], [1, 0, 0])); // side outlet\n    return new Assembly({ geometry: m, color: \"#3A3A3A\", tags: [\"muffler\"] });\n}\n"
+                }
+              ],
+              "allConnectors": [
+                {
+                  "ap2Name": "number or geometry",
+                  "ap1ID": "id-438",
+                  "ap2ID": "id-437"
+                }
+              ],
+              "fileTypeVersion": 1
+            },
+            {
+              "atomType": "Assembly",
+              "x": 0.55,
+              "y": 0.75,
+              "uniqueID": "id-439",
+              "ioValues": [
+                {
+                  "name": "makeDisjoint",
+                  "ioValue": false
+                },
+                {
+                  "name": "Shape 1",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape2",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape3",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape4",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                },
+                {
+                  "name": "Shape5",
+                  "ioValue": "__GEOMETRY_INPUT__"
+                }
+              ]
+            }
+          ],
+          "allConnectors": [
+            {
+              "ap2Name": "Shape 1",
+              "ap1ID": "id-427",
+              "ap2ID": "id-439"
+            },
+            {
+              "ap2Name": "Shape2",
+              "ap1ID": "id-430",
+              "ap2ID": "id-439"
+            },
+            {
+              "ap2Name": "Shape3",
+              "ap1ID": "id-433",
+              "ap2ID": "id-439"
+            },
+            {
+              "ap2Name": "Shape4",
+              "ap1ID": "id-436",
+              "ap2ID": "id-439"
+            },
+            {
+              "ap2Name": "number or geometry",
+              "ap1ID": "id-439",
+              "ap2ID": "id-425"
+            }
+          ],
+          "fileTypeVersion": 1
+        },
+        {
+          "atomType": "Assembly",
+          "x": 0.55,
+          "y": 0.5,
+          "uniqueID": "id-468",
+          "ioValues": [
+            {
+              "name": "makeDisjoint",
+              "ioValue": false
+            },
+            {
+              "name": "Shape 1",
+              "ioValue": "__GEOMETRY_INPUT__"
+            },
+            {
+              "name": "Shape2",
+              "ioValue": "__GEOMETRY_INPUT__"
+            },
+            {
+              "name": "Shape3",
+              "ioValue": "__GEOMETRY_INPUT__"
+            },
+            {
+              "name": "Shape4",
+              "ioValue": "__GEOMETRY_INPUT__"
+            }
+          ]
+        }
+      ],
+      "allConnectors": [
+        {
+          "ap2Name": "number or geometry",
+          "ap1ID": "id-222",
+          "ap2ID": "id-106"
+        },
+        {
+          "ap2Name": "Shape 1",
+          "ap1ID": "id-321",
+          "ap2ID": "id-468"
+        },
+        {
+          "ap2Name": "Shape2",
+          "ap1ID": "id-378",
+          "ap2ID": "id-468"
+        },
+        {
+          "ap2Name": "Shape3",
+          "ap1ID": "id-423",
+          "ap2ID": "id-468"
+        },
+        {
+          "ap2Name": "geometry",
+          "ap1ID": "id-468",
+          "ap2ID": "id-222"
+        }
+      ],
+      "fileTypeVersion": 1
+    },
+    {
       "atomType": "Output",
       "x": 0.98,
       "y": 0.5,
@@ -31,7 +932,13 @@
       "SVGwidth": 10
     }
   ],
-  "allConnectors": [],
+  "allConnectors": [
+    {
+      "ap2Name": "number or geometry",
+      "ap1ID": "id-104",
+      "ap2ID": "id-2"
+    }
+  ],
   "unitsKey": "MM",
   "fileTypeVersion": 1,
   "filetypeVersion": 1

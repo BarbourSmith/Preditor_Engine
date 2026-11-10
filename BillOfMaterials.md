@@ -2,3 +2,5 @@
 # Bill Of Materials 
  |Part|Number Needed|Price|Source| 
  |----|----------|-----|-----|
+|Predator 212cc 6.5 HP OHV horizontal shaft gas engine, 3/4 in shaft (Harbor Freight 69730)|1|$0.00|https://go.harborfreight.com/www69730|
+|Total: |1|$0.00| |
